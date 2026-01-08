@@ -1,15 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, BookOpen, Sun, Moon, Share2, Copy, Menu, Edit, Save, RotateCcw, LogOut, Lock, User, Key, Users, Trash2, CheckSquare, Square, X, Plus, GraduationCap, School, MinusCircle, Settings, List, Clock, Clipboard, FileText, Grid, Layout, CheckCircle, AlertCircle, Link, Check, XCircle, BarChart3, FileBarChart } from 'lucide-react';
+import { 
+  Calendar, ChevronLeft, ChevronRight, BookOpen, Sun, Moon, Share2, Copy, Menu, Edit, Save, 
+  RotateCcw, LogOut, Lock, User, Key, Users, Trash2, CheckSquare, Square, X, Plus, GraduationCap, 
+  School, MinusCircle, Settings, List, Clock, Clipboard, FileText, Grid, Layout, CheckCircle, 
+  AlertCircle, Link, Check, XCircle, BarChart3, FileBarChart 
+} from 'lucide-react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, collection, addDoc, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
+import { 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, collection, addDoc, 
+  query, where, getDocs, deleteDoc, updateDoc 
+} from "firebase/firestore";
 
-// --- Configuración de Firebase ---
-mport { auth, db, appId } from './firebase';
+// --- CONFIGURACIÓN DE FIREBASE (Unificada para que funcione aquí) ---
+// NOTA PARA VS CODE: Cuando copies esto a tu computadora, 
+// reemplaza todo este bloque con tus credenciales reales así:
+/*
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "NUMEROS",
+    appId: "TU_APP_ID"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const appId = "ecomundo-v1";
+*/
 
-// FIX: Sanitizar appId para evitar errores de segmentos en Firestore
+// Configuración dinámica para el entorno de prueba (NO TOCAR si estás probando aquí)
+const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Sanitizar appId para evitar errores de segmentos en Firestore
 const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const appId = rawAppId.replace(/[\/.]/g, '_'); 
+// ------------------------------------------------------------------
 
 // --- Constantes del Sistema ---
 const ROLES = {
@@ -44,7 +74,7 @@ const DEFAULT_CONFIG = {
   courseSchedules: {}
 };
 
-// --- Componentes UI ---
+// --- Componentes UI Reutilizables ---
 
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -58,7 +88,7 @@ const Toast = ({ message, type, onClose }) => {
   return (
     <div className={`fixed bottom-6 right-6 ${bgClass} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5 z-[100]`}>
       {type === 'error' ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
-      <span className="font-medium text-sm">{typeof message === 'string' ? message : 'Notificación'}</span>
+      <span className="font-medium text-sm">{message}</span>
       <button onClick={onClose}><X size={16} className="opacity-70 hover:opacity-100"/></button>
     </div>
   );
@@ -204,7 +234,7 @@ const ScheduleTemplateManager = ({ templates, onSaveTemplates, onDeleteTemplate 
               ))}
             </div>
           </>
-        ) : <div className="flex items-center justify-center h-full text-slate-400 italic">Selecciona una plantilla</div>}
+        ) : <div className="flex items-center justify-center h-full text-slate-400 italic">Selecciona una plantilla para editar sus horas</div>}
       </div>
     </div>
   );
@@ -407,14 +437,12 @@ const App = () => {
     setIsLoadingLogin(true);
     if (!firebaseUser) { setLoginError("Conectando..."); setIsLoadingLogin(false); return; }
     try {
-      // FIX: Filter in memory to avoid index errors on public collection
       const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'app_users'));
       let foundUser = null;
       querySnapshot.forEach((doc) => {
         const userData = doc.data();
         if (userData.email === email && userData.password === password) foundUser = { id: doc.id, ...userData };
       });
-
       if (!foundUser && email === 'gasencio@ecomundo.edu.ec' && password === '123456') {
         const masterUser = { name: 'Admin Ecomundo', email: 'gasencio@ecomundo.edu.ec', password: '123456', roles: [ROLES.ADMIN, ROLES.TEACHER], workSection: 'Sección Secundaria', assignedSubjects: ['Matemáticas'], createdAt: serverTimestamp(), schedule: [] };
         const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'app_users'), masterUser);
@@ -474,7 +502,6 @@ const App = () => {
     finally { setIsSavingLogs(false); }
   };
 
-  // --- Funciones Admin ---
   const handleAddConfigItem = async (type, value) => {
     const updatedList = [...academicConfig[type], value.trim()];
     try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'academic'), { ...academicConfig, [type]: updatedList }); showToast("Elemento agregado"); } 
@@ -607,7 +634,6 @@ const App = () => {
     return '#' + "00000".substring(0, 6 - c.length) + c;
   };
 
-  // --- Vistas ---
   const renderWeeklyPlanner = () => {
     const weekDates = getWeekDates(currentDate);
     return (

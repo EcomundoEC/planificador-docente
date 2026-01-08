@@ -5,10 +5,7 @@ import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, 
 import { getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, collection, addDoc, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
 
 // --- Configuración de Firebase ---
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+mport { auth, db, appId } from './firebase';
 
 // FIX: Sanitizar appId para evitar errores de segmentos en Firestore
 const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';

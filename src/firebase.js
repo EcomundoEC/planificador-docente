@@ -1,25 +1,21 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// --- TU CONFIGURACIÓN DE FIREBASE ---
-// Reemplaza los valores entre comillas con los que copiaste de la consola de Firebase.
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",               // Ej: "AIzaSyD..."
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO_ID",        // Ej: "planificador-docente-xyz"
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TUS_NUMEROS",
-  appId: "TU_APP_ID"                  // Ej: "1:123456789:web:..."
+  apiKey: "AIzaSyALbul3z4vBS2X2_NguHqkzSA6gE1kcGdY",
+  authDomain: "planificador-docente-a0513.firebaseapp.com",
+  projectId: "planificador-docente-a0513",
+  storageBucket: "planificador-docente-a0513.firebasestorage.app",
+  messagingSenderId: "101578575530",
+  appId: "1:101578575530:web:6b5837a2bf198045c7cad3",
+  measurementId: "G-B2BB0CW1TL"
 };
 
-// Inicializar Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Exportar los servicios para usarlos en el resto de la app
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-// Identificador único para separar datos si usas la misma BD para varias apps
-// Puedes dejarlo como está o cambiarlo al nombre de tu colegio
-export const appId = "ecomundo-v1";
+const analytics = getAnalytics(app);
